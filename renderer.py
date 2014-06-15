@@ -1344,7 +1344,7 @@ class PlantBlockRenderer(BlockRenderer):
 
 
 class TorchBlockRenderer(BlockRenderer):
-    blocktypes = [50, 75, 76]
+    blocktypes = [pymclevel.materials.alphaMaterials.Torch.ID, pymclevel.materials.alphaMaterials.RedstoneTorchOff.ID, pymclevel.materials.alphaMaterials.RedstoneTorchOn.ID]
     renderstate = ChunkCalculator.renderstateAlphaTest
     torchOffsetsStraight = [
         [  # FaceXIncreasing
@@ -1580,7 +1580,7 @@ class RailBlockRenderer(BlockRenderer):
 
 
 class LadderBlockRenderer(BlockRenderer):
-    blocktypes = [pymclevel.materials.alphaMaterials.Ladder.ID]
+    blocktypes = [pymclevel.materials.alphaMaterials.Ladder.ID,pymclevel.materials.alphaMaterials.Vines.ID]
 
     ladderOffsets = numpy.array([
         [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)],
@@ -1623,11 +1623,11 @@ class LadderBlockRenderer(BlockRenderer):
 
     makeVertices = ladderVertices
 
-
 class SnowBlockRenderer(BlockRenderer):
+    
     snowID = 78
 
-    blocktypes = [snowID]
+    blocktypes = [pymclevel.materials.alphaMaterials.Snow.ID]
 
     def makeSnowVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
         snowIndices = self.getMaterialIndices(blockMaterials)
@@ -1667,7 +1667,7 @@ class SnowBlockRenderer(BlockRenderer):
 
 
 class RedstoneBlockRenderer(BlockRenderer):
-    blocktypes = [55]
+    blocktypes = [pymclevel.materials.alphaMaterials.RedstoneWire.ID]
 
     def redstoneVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
         blockIndices = self.getMaterialIndices(blockMaterials)
