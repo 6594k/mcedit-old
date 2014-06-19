@@ -1580,7 +1580,7 @@ class RailBlockRenderer(BlockRenderer):
 
 
 class LadderBlockRenderer(BlockRenderer):
-    blocktypes = [pymclevel.materials.alphaMaterials.Ladder.ID,pymclevel.materials.alphaMaterials.Vines.ID]
+    blocktypes = [pymclevel.materials.alphaMaterials.Ladder.ID]
 
     ladderOffsets = numpy.array([
         [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)],
