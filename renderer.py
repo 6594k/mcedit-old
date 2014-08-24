@@ -1815,8 +1815,8 @@ class EnchantingBlockRenderer(BlockRenderer): #Note: Enderportal frame side spri
 
     makeVertices = makeEnchantingVertices
     
-class DaylightBlockRenderer(BlockRenderer): #Note: Enderportal frame side sprite has been lowered 1 pixel to use this renderer, will need separate renderer for eye.
-    blocktypes = [pymclevel.materials.alphaMaterials.DaylightSensor.ID]
+class DaylightBlockRenderer(BlockRenderer):
+    blocktypes = [pymclevel.materials.alphaMaterials.DaylightSensor.ID, pymclevel.materials.alphaMaterials.DaylightSensorOn.ID]
     def makeDaylightVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
         materialIndices = self.getMaterialIndices(blockMaterials)
         arrays = []
@@ -1954,13 +1954,21 @@ class RedstoneBlockRenderer(BlockRenderer):
 #BUTTONS GO HERE
 
 
-class FenceBlockRenderer(BlockRenderer): #This code is a mess, written to only accept one type of material. Rewrite me.
-    blocktypes = [pymclevel.materials.alphaMaterials.Fence.ID]
+class FenceBlockRenderer(BlockRenderer): #This code is written to only accept one texture. Fix me.
+    blocktypes = [pymclevel.materials.alphaMaterials.Fence.ID,
+                    pymclevel.materials.alphaMaterials.SpruceFence.ID,
+                    pymclevel.materials.alphaMaterials.BirchFence.ID,
+                    pymclevel.materials.alphaMaterials.JungleFence.ID,
+                    pymclevel.materials.alphaMaterials.DarkOakFence.ID,
+                    pymclevel.materials.alphaMaterials.AcaciaFence.ID
+                    ]
     fenceTemplates = makeVertexTemplates(3 / 8., 0, 3 / 8., 5 / 8., 1, 5 / 8.)
     def fenceVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
-        fenceMask = blocks == [pymclevel.materials.alphaMaterials.Fence.ID]
+        fenceMask = self.getMaterialIndices(blockMaterials)
         fenceIndices = fenceMask.nonzero()
         yield
+        
+        tex = texMap(blocks[fenceMask], blockData[fenceMask], 0)[:, numpy.newaxis, 0:2]
 
         vertexArray = numpy.zeros((len(fenceIndices[0]), 6, 4, 6), dtype='float32')
         for indicies in range(3):
@@ -1969,8 +1977,8 @@ class FenceBlockRenderer(BlockRenderer): #This code is a mess, written to only a
             vertexArray[..., indicies] = fenceIndices[dimension][:, numpy.newaxis, numpy.newaxis]  # xxx swap z with y using ^
 
         vertexArray[..., 0:5] += self.fenceTemplates[..., 0:5]
-        vertexArray[_ST] += pymclevel.materials.alphaMaterials.blockTextures[pymclevel.materials.alphaMaterials.Fence.ID, 0, 0]
-
+        vertexArray[_ST] += pymclevel.materials.alphaMaterials.blockTextures[pymclevel.materials.alphaMaterials.Fence.ID, 0, 0] #Offending line
+        
         vertexArray.view('uint8')[_RGB] = self.fenceTemplates[..., 5][..., numpy.newaxis]
         vertexArray.view('uint8')[_A] = 0xFF
         vertexArray.view('uint8')[_RGB] *= areaBlockLights[1:-1, 1:-1, 1:-1][fenceIndices][..., numpy.newaxis, numpy.newaxis, numpy.newaxis]
@@ -1984,7 +1992,7 @@ class NetherFenceBlockRenderer(BlockRenderer):
     blocktypes = [pymclevel.materials.alphaMaterials.NetherBrickFence.ID]
     fenceTemplates = makeVertexTemplates(3 / 8., 0, 3 / 8., 5 / 8., 1, 5 / 8.)
     def fenceVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
-        fenceMask = blocks == [pymclevel.materials.alphaMaterials.NetherBrickFence.ID]
+        fenceMask = self.getMaterialIndices(blockMaterials)
         fenceIndices = fenceMask.nonzero()
         yield
 
@@ -1992,7 +2000,7 @@ class NetherFenceBlockRenderer(BlockRenderer):
         for indicies in range(3):
             dimension = (0, 2, 1)[indicies]
 
-            vertexArray[..., indicies] = fenceIndices[dimension][:, numpy.newaxis, numpy.newaxis]  # xxx swap z with y using ^
+            vertexArray[..., indicies] = fenceIndices[dimension][:, numpy.newaxis, numpy.newaxis] 
 
         vertexArray[..., 0:5] += self.fenceTemplates[..., 0:5]
         vertexArray[_ST] += pymclevel.materials.alphaMaterials.blockTextures[pymclevel.materials.alphaMaterials.NetherBrickFence.ID, 0, 0]
@@ -2116,7 +2124,7 @@ class VineBlockRenderer(BlockRenderer):
 
 
 class SlabBlockRenderer(BlockRenderer):
-    blocktypes = [44, 126]
+    blocktypes = [pymclevel.materials.alphaMaterials.OakWoodSlab.ID, pymclevel.materials.alphaMaterials.StoneSlab.ID, pymclevel.materials.alphaMaterials.RedSandstoneSlab.ID]
 
     def slabFaceVertices(self, direction, blockIndices, exposedFaceIndices, blocks, blockData, blockLight, facingBlockLight, texMap):
         if direction != pymclevel.faces.FaceYIncreasing:
