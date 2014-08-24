@@ -162,7 +162,7 @@ class ControlPanel(Panel):
                     (cmd + "-W", "Close", editor.closeEditor),
                     ("", "", lambda: None),
 
-                    (cmd + "G", "Goto", editor.showGotoPanel),
+                    (cmd + "-G", "Goto", editor.showGotoPanel),
                     (cmd + "-I", "World Info", editor.showWorldInfo),
                     (cmd + "-Z", "Undo", editor.undo),
                     (cmd + "-A", "Select All", editor.selectAll),
@@ -288,7 +288,7 @@ class CameraViewport(GLViewport):
     def brakeOff(self):
         self.brake = False
 
-    tickInterval = 1000 / 30
+    tickInterval = 1000 / Settings.targetFPS.get()
 
     oldPosition = (0, 0, 0)
 
