@@ -323,7 +323,7 @@ class SelectionTool(EditorTool):
             return repr(e)
 
     def worldTooltipForBlock(self, pos):
-
+        blockdata = self.editor.level.blockDataAt(*pos)
         x, y, z = pos
         cx, cz = x / 16, z / 16
         if isinstance(self.editor.level, pymclevel.MCInfdevOldLevel):
@@ -343,7 +343,9 @@ class SelectionTool(EditorTool):
         if block in (pymclevel.alphaMaterials.Chest.ID,
                      pymclevel.alphaMaterials.Furnace.ID,
                      pymclevel.alphaMaterials.LitFurnace.ID,
-                     pymclevel.alphaMaterials.Dispenser.ID):
+                     pymclevel.alphaMaterials.Dispenser.ID,
+                     pymclevel.alphaMaterials.Hopper.ID,
+                     pymclevel.alphaMaterials.Dropper.ID):
             t = self.editor.level.tileEntityAt(*pos)
             if t:
                 containerID = t["id"].value
@@ -364,7 +366,9 @@ class SelectionTool(EditorTool):
                     else:
                         return "Empty {0}. \n\nDouble-click to edit {0}.".format(containerID)
             else:
-                return "Double-click to initialize the {0}.".format(pymclevel.alphaMaterials.names[block][0])
+                #return "Double-click to initialize {0}.".format(pymclevel.alphaMaterials.names[block][blockdata])
+                #Will undo when container initialization is fixed.
+                return "Uninitialized {0}.".format(pymclevel.alphaMaterials.names[block][blockdata])
         if block == pymclevel.alphaMaterials.MonsterSpawner.ID:
 
             t = self.editor.level.tileEntityAt(*pos)
@@ -384,7 +388,7 @@ class SelectionTool(EditorTool):
                 signtext = "Undefined"
             return "Sign text: \n" + signtext + "\n\n" + "Double-click to edit sign."
 
-        absentTexture = (self.editor.level.materials.blockTextures[block, 0, 0] == pymclevel.materials.NOTEX).all()
+        absentTexture = (self.editor.level.materials.blockTextures[block, blockdata, 0] == pymclevel.materials.NOTEX).all()
         if absentTexture:
             return self.describeBlockAt(pos)
 

@@ -759,7 +759,7 @@ class CameraViewport(GLViewport):
             id = itemProp("id")
             Damage = itemProp("Damage")
             Count = itemProp("Count")
-            itemLimit = pymclevel.TileEntity.maxItems.get(containerID, 255)
+            itemLimit = pymclevel.TileEntity.maxItems.get(containerID, 26)
 
         def slotFormat(slot):
             slotNames = pymclevel.TileEntity.slotNames.get(containerID)
@@ -769,12 +769,12 @@ class CameraViewport(GLViewport):
 
         chestWidget = ChestWidget()
         chestItemTable = TableView(columns=[
-            TableColumn("Slot", 80, "l", fmt=slotFormat),
-            TableColumn("ID", 50, "l"),
+            TableColumn("Slot", 60, "l", fmt=slotFormat),
+            TableColumn("ID / ID Name", 345, "l"), #Widened to accept the much longer 1.8 internal names
             TableColumn("DMG", 50, "l"),
             TableColumn("Count", 65, "l"),
 
-            TableColumn("Name", 200, "l"),
+            TableColumn("Name", 260, "l"),
         ])
 
         def itemName(id, damage):
@@ -799,8 +799,8 @@ class CameraViewport(GLViewport):
         chestItemTable.click_row = selectTableRow
 
         fieldRow = (
-            # mceutils.IntInputRow("Slot: ", ref=AttrRef(chestWidget, 'Slot'), min= -128, max=127),
-            mceutils.IntInputRow("ID: ", ref=AttrRef(chestWidget, 'id'), min=0, max=32767),
+            mceutils.IntInputRow("Slot: ", ref=AttrRef(chestWidget, 'Slot'), min=0, max=26),
+            mceutils.TextInputRow("ID / ID Name: ", ref=AttrRef(chestWidget, 'id'),width=300), #Text to allow the input of internal item names           
             mceutils.IntInputRow("DMG: ", ref=AttrRef(chestWidget, 'Damage'), min=-32768, max=32767),
             mceutils.IntInputRow("Count: ", ref=AttrRef(chestWidget, 'Count'), min=-128, max=127),
         )
@@ -898,16 +898,16 @@ class CameraViewport(GLViewport):
             if slot >= chestWidget.itemLimit:
                 return
             item = pymclevel.TAG_Compound()
-            item["id"] = pymclevel.TAG_Short(0)
+            item["id"] = pymclevel.TAG_String("minecraft:")
             item["Damage"] = pymclevel.TAG_Short(0)
             item["Slot"] = pymclevel.TAG_Byte(slot)
             item["Count"] = pymclevel.TAG_Byte(0)
             tileEntityTag["Items"].append(item)
 
-        addItemButton = Button("Add Item", action=addItem, enable=addEnable)
+        addItemButton = Button("New Item (1.7+)", action=addItem, enable=addEnable)
         deleteItemButton = Button("Delete This Item", action=deleteItem, enable=deleteEnable)
-        deleteFromWorldButton = Button("Delete Item ID From Entire World", action=deleteFromWorld, enable=deleteEnable)
-        deleteCol = Column((addItemButton, deleteItemButton, deleteFromWorldButton), align="l")
+        deleteFromWorldButton = Button("Delete All Instances Of This Item From World", action=deleteFromWorld, enable=deleteEnable)
+        deleteCol = Column((addItemButton, deleteItemButton, deleteFromWorldButton))
 
         fieldRow = Row(fieldRow)
         col = Column((chestItemTable, fieldRow, deleteCol))
@@ -2915,8 +2915,8 @@ class LevelEditor(GLViewport):
                 d.dismiss("Cancel")
 
         worldTable = TableView(columns=[
-            TableColumn("Last Played", 250, "l"),
-            TableColumn("Level Name (filename)", 400, "l"),
+            TableColumn("Last Played", 170, "l"),
+            TableColumn("Level Name (filename)", 500, "l"),
             TableColumn("Dims", 100, "r"),
 
         ])

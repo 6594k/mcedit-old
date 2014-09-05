@@ -418,9 +418,11 @@ class ChunkCalculator (object):
                 SnowBlockRenderer,
                 CarpetBlockRenderer,
                 CactusBlockRenderer,
+                PaneBlockRenderer,
                 CakeBlockRenderer,
                 DaylightBlockRenderer,
                 #LeverBlockRenderer,
+                BedBlockRenderer,
                 EnchantingBlockRenderer,
                 RedstoneBlockRenderer,
                 IceBlockRenderer,
@@ -656,10 +658,21 @@ class ChunkCalculator (object):
         areaBlockLights = self.getAreaBlockLights(chunk, neighboringChunks)
         yield
 
-        slabs = areaBlocks == pymclevel.materials.alphaMaterials.StoneSlab.ID
+        slabs = areaBlocks == pymclevel.materials.alphaMaterials.StoneSlab.ID  #If someone could combine these, that would be great.
         if slabs.any():
             areaBlockLights[slabs] = areaBlockLights[:, :, 1:][slabs[:, :, :-1]]
         yield
+        
+        woodSlabs = areaBlocks == pymclevel.materials.alphaMaterials.OakWoodSlab.ID
+        if woodSlabs.any():
+            areaBlockLights[woodSlabs] = areaBlockLights[:, :, 1:][woodSlabs[:, :, :-1]]
+        yield
+
+        redSlabs = areaBlocks == pymclevel.materials.alphaMaterials.RedSandstoneSlab.ID
+        if redSlabs.any():
+            areaBlockLights[redSlabs] = areaBlockLights[:, :, 1:][redSlabs[:, :, :-1]]
+        yield
+
 
         showHiddenOres = cr.renderer.showHiddenOres
         if showHiddenOres:
@@ -1356,7 +1369,7 @@ class PlantBlockRenderer(BlockRenderer):
     makeVertices = makePlantVertices
 
 
-class TorchBlockRenderer(BlockRenderer): #Levers here until someone makes a renderer for it.
+class TorchBlockRenderer(BlockRenderer): #Levers here until someone makes a separate renderer for it.
     blocktypes = [pymclevel.materials.alphaMaterials.Torch.ID, 
         pymclevel.materials.alphaMaterials.RedstoneTorchOff.ID,
         pymclevel.materials.alphaMaterials.RedstoneTorchOn.ID,
@@ -1752,6 +1765,40 @@ class CactusBlockRenderer(BlockRenderer):
 
     makeVertices = makeCactusVertices
     
+class PaneBlockRenderer(BlockRenderer):  #Basic no thickness panes, add more faces to widen.
+    blocktypes = [pymclevel.materials.alphaMaterials.GlassPane.ID, pymclevel.materials.alphaMaterials.StainedGlassPane.ID, pymclevel.materials.alphaMaterials.IronBars.ID]
+
+    def makePaneVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
+        materialIndices = self.getMaterialIndices(blockMaterials)
+        arrays = []
+        yield
+        for direction, exposedFaceIndices in enumerate(facingBlockIndices):
+
+            blockIndices = materialIndices
+            facingBlockLight = areaBlockLights[self.directionOffsets[direction]]
+            lights = facingBlockLight[blockIndices][..., numpy.newaxis, numpy.newaxis]
+
+            vertexArray = self.makeTemplate(direction, blockIndices)
+            if not len(vertexArray):
+                continue
+            vertexArray[_ST] += texMap(blocks[blockIndices], blockData[blockIndices], direction)[:, numpy.newaxis, 0:2]
+            vertexArray.view('uint8')[_RGB] *= lights
+
+            if direction == pymclevel.faces.FaceXIncreasing:
+                vertexArray[_XYZ][..., 0] -= 0.5
+            if direction == pymclevel.faces.FaceXDecreasing:
+                vertexArray[_XYZ][..., 0] += 0.5
+            if direction == pymclevel.faces.FaceZIncreasing:
+                vertexArray[_XYZ][..., 2] -= 0.5
+            if direction == pymclevel.faces.FaceZDecreasing:
+                vertexArray[_XYZ][..., 2] += 0.5
+
+            arrays.append(vertexArray)
+            yield
+        self.vertexArrays = arrays
+
+    makeVertices = makePaneVertices
+    
 class PlateBlockRenderer(BlockRenderer): #suggestions to make this the proper shape is appreciated.
     blocktypes = [pymclevel.materials.alphaMaterials.StoneFloorPlate.ID,
                     pymclevel.materials.alphaMaterials.WoodFloorPlate.ID,
@@ -1843,6 +1890,35 @@ class DaylightBlockRenderer(BlockRenderer):
         self.vertexArrays = arrays
 
     makeVertices = makeDaylightVertices
+    
+class BedBlockRenderer(BlockRenderer):
+    blocktypes = [pymclevel.materials.alphaMaterials.Bed.ID]
+    def makeBedVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
+        materialIndices = self.getMaterialIndices(blockMaterials)
+        arrays = []
+        yield
+        for direction, exposedFaceIndices in enumerate(facingBlockIndices):
+            if direction != pymclevel.faces.FaceYIncreasing:
+                blockIndices = materialIndices & exposedFaceIndices
+            else:
+                blockIndices = materialIndices
+
+            facingBlockLight = areaBlockLights[self.directionOffsets[direction]]
+            lights = facingBlockLight[blockIndices][..., numpy.newaxis, numpy.newaxis]
+            vertexArray = self.makeTemplate(direction, blockIndices)
+            if not len(vertexArray):
+                continue
+
+            vertexArray[_ST] += texMap(blocks[blockIndices], blockData[blockIndices], direction)[:, numpy.newaxis, 0:2]
+            vertexArray.view('uint8')[_RGB] *= lights
+            if direction == pymclevel.faces.FaceYIncreasing:
+                vertexArray[_XYZ][..., 1] -= 0.438
+
+            arrays.append(vertexArray)
+            yield
+        self.vertexArrays = arrays
+
+    makeVertices = makeBedVertices
 
 class CakeBlockRenderer(BlockRenderer):  #Only shows whole cakes
     blocktypes = [pymclevel.materials.alphaMaterials.Cake.ID]
@@ -2124,13 +2200,13 @@ class VineBlockRenderer(BlockRenderer):
 
 
 class SlabBlockRenderer(BlockRenderer):
-    blocktypes = [pymclevel.materials.alphaMaterials.OakWoodSlab.ID, pymclevel.materials.alphaMaterials.StoneSlab.ID, pymclevel.materials.alphaMaterials.RedSandstoneSlab.ID]
+    blocktypes = [pymclevel.materials.alphaMaterials.OakWoodSlab.ID, 
+                    pymclevel.materials.alphaMaterials.StoneSlab.ID, 
+                    pymclevel.materials.alphaMaterials.RedSandstoneSlab.ID]
 
-    def slabFaceVertices(self, direction, blockIndices, exposedFaceIndices, blocks, blockData, blockLight, facingBlockLight, texMap):
-        if direction != pymclevel.faces.FaceYIncreasing:
-            blockIndices = blockIndices & exposedFaceIndices
+    def slabFaceVertices(self, direction, blockIndices, facingBlockLight, blocks, blockData, blockLight, areaBlockLights, texMap):
 
-        lights = facingBlockLight[blockIndices][..., numpy.newaxis, numpy.newaxis]
+        lights = areaBlockLights[blockIndices][..., numpy.newaxis, numpy.newaxis]
         bdata = blockData[blockIndices]
         top = (bdata >> 3).astype(bool)
         bdata &= 7

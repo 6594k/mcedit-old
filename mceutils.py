@@ -488,7 +488,7 @@ def CheckBoxLabel(title, *args, **kw):
     row.checkbox = cb
     return row
 
-from albow import FloatField, IntField
+from albow import FloatField, IntField, TextField
 
 
 def FloatInputRow(title, *args, **kw):
@@ -501,6 +501,8 @@ def IntInputRow(title, *args, **kw):
 from albow.dialogs import Dialog
 from datetime import timedelta
 
+def TextInputRow(title, *args, **kw):
+    return Row((Label(title, tooltipText=kw.get('tooltipText')), TextField(*args, **kw)))
 
 def setWindowCaption(prefix):
     caption = display.get_caption()[0]
