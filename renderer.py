@@ -1253,7 +1253,7 @@ class LeafBlockRenderer(BlockRenderer):
                 jungle = (data == pymclevel.materials.alphaMaterials.JungleLeaves.blockData)
                 acacia = (data == pymclevel.materials.alphaMaterials.AcaciaLeaves.blockData)
                 darkoak = (data == pymclevel.materials.alphaMaterials.DarkOakLeaves.blockData)
-                #texes = texMap(blocks[blockIndices], data, 0)
+                texes = texMap(blocks[blockIndices], [0], 0)
         else:
             blockIndices = materialIndices
             texes = texMap(blocks[blockIndices], [0], 0)
